@@ -1,117 +1,245 @@
-// Кількість параграфів <p>
-const paragraphs = document.querySelectorAll("p");
-console.log("Кількість <p>:", paragraphs.length);
+// Отримуємо елемент canvas і контекст для малювання
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-// Кількість заголовків <h2>
-const h2s = document.querySelectorAll("h2");
-console.log("Кількість <h2>:", h2s.length);
+// Початкові координати і розміри гравця (квадрата)
+const player = {
+    x: 375,
+    y: 550,
+    size: 30,
+    speed: 5, // Швидкість гравця
+    speedMultiplier: 1 // Множник швидкості (для бафів/дебафів)
+};
 
-// Значення background-color для <body>
-const bodyBg = getComputedStyle(document.body).backgroundColor;
-console.log("background-color <body>:", bodyBg);
+// Массив для ворогів
+let enemies = [];
+// Массив для перешкод
+let obstacles = [];
+// Массив для кубів (бафів/дебафів)
+let cubes = [];
 
-// Значення font-size для <h1>
-const h1 = document.querySelector("h1");
-console.log("font-size <h1>:", getComputedStyle(h1).fontSize);
+// Очки
+let score = 0;
 
-// Зміна фону всіх елементів при наведенні на кнопку
-const btn = document.getElementById("startBtn");
-const allElements = document.querySelectorAll("*");
+// Стан гри
+let isGameOver = false;
+let isGameWon = false; // Стан перемоги
 
-btn.addEventListener("mouseenter", () => {
-    allElements.forEach((el) => {
-        el.style.backgroundColor = "red";
-    });
+// Параметри складності
+let difficultyLevel = 1; // Рівень складності
+
+// Обробка подій клавіатури
+let keys = {
+    left: false,
+    right: false
+};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') keys.left = true;
+    if (e.key === 'ArrowRight') keys.right = true;
 });
 
-btn.addEventListener("mouseleave", () => {
-    allElements.forEach((el) => {
-        el.style.backgroundColor = "";
-    });
+document.addEventListener('keyup', (e) => {
+    if (e.key === 'ArrowLeft') keys.left = false;
+    if (e.key === 'ArrowRight') keys.right = false;
 });
 
-// Завантаження галереї після 5 секунд
-window.addEventListener("load", () => {
-    setTimeout(addGalleryImages, 5000); // Чекаємо 5 секунд, а потім викликаємо функцію
-});
-
-// Функція для додавання зображень у галерею з затримкою
-function addGalleryImages() {
-    const imagesUrl = [
-        "https://shadowfight2.com/images/slides/screenshot_01.jpg",
-        "https://shadowfight2.com/images/slides/screenshot_02.jpg",
-        "https://shadowfight2.com/images/slides/screenshot_03.jpg",
-        "https://shadowfight2.com/images/slides/screenshot_04.jpg",
-        "https://shadowfight2.com/images/slides/screenshot_05.jpg",
-        "https://shadowfight2.com/images/slides/screenshot_06.jpg"
-    ];
-
-    const gallery = document.querySelector(".gallery-images");
-    if (!gallery) return;
-
-    imagesUrl.forEach((url, index) => {
-        const img = document.createElement("img");
-        img.src = url;
-        img.alt = `Скріншот ${index + 1}`;
-        img.classList.add("fade-in");
-
-        setTimeout(() => {
-            gallery.appendChild(img);
-        }, index * 1000); // Затримка 1 секунда між зображеннями
-    });
+// Функція для малювання гравця
+function drawPlayer() {
+    ctx.fillStyle = 'blue';
+    ctx.fillRect(player.x, player.y, player.size, player.size);
 }
 
-// Функція для очищення тексту та розбиття на слова
-function getWords(text) {
-    return text
-        .toLowerCase()
-        .replace(/[^\wа-яіїєґ']+/g, " ")
-        .split(/\s+/);
+// Функція для малювання ворогів
+function drawEnemies() {
+    ctx.fillStyle = 'red';
+    for (let i = 0; i < enemies.length; i++) {
+        ctx.fillRect(enemies[i].x, enemies[i].y, enemies[i].size, enemies[i].size);
+    }
 }
 
-// Основна функція для знаходження спільних слів
-function findCommonWords(phrase1, phrase2) {
-    const words1 = getWords(phrase1);
-    const words2 = getWords(phrase2);
-
-    const set1 = new Set(words1);
-    const set2 = new Set(words2);
-
-    return [...set1].filter((word) => set2.has(word)); // Знаходимо спільні елементи
+// Функція для малювання перешкод
+function drawObstacles() {
+    ctx.fillStyle = 'green';
+    for (let i = 0; i < obstacles.length; i++) {
+        ctx.fillRect(obstacles[i].x, obstacles[i].y, obstacles[i].size, obstacles[i].size);
+    }
 }
 
-// Обробник події для порівняння фраз
-document.getElementById("compareButton").addEventListener("click", () => {
-    const phrase1 = document.getElementById("phraseInput1").value.trim();
-    const phrase2 = document.getElementById("phraseInput2").value.trim();
+// Функція для малювання кубів (бафів/дебафів)
+function drawCubes() {
+    for (let i = 0; i < cubes.length; i++) {
+        if (cubes[i].type === 'buff') {
+            ctx.fillStyle = 'gold'; // Золотий для бафу
+        } else {
+            ctx.fillStyle = 'purple'; // Фіолетовий для дебафу
+        }
+        ctx.fillRect(cubes[i].x, cubes[i].y, cubes[i].size, cubes[i].size);
+    }
+}
 
-    if (!phrase1 || !phrase2) {
-        document.getElementById("result").textContent = "Будь ласка, введіть обидві фрази.";
+// Оновлення позиції гравця
+function updatePlayer() {
+    if (keys.left && player.x > 0) player.x -= player.speed * player.speedMultiplier;
+    if (keys.right && player.x < canvas.width - player.size) player.x += player.speed * player.speedMultiplier;
+}
+
+// Оновлення ворогів
+function updateEnemies() {
+    for (let i = 0; i < enemies.length; i++) {
+        enemies[i].y += enemies[i].speed;
+        enemies[i].x += enemies[i].sideMovement;
+
+        if (enemies[i].y > canvas.height) {
+            enemies.splice(i, 1);
+            score++;
+        }
+    }
+}
+
+// Оновлення перешкод
+function updateObstacles() {
+    for (let i = 0; i < obstacles.length; i++) {
+        obstacles[i].y += obstacles[i].speed;
+
+        if (obstacles[i].y > canvas.height) {
+            obstacles.splice(i, 1);
+        }
+    }
+}
+
+// Оновлення кубів (бафів/дебафів)
+function updateCubes() {
+    for (let i = 0; i < cubes.length; i++) {
+        cubes[i].y += cubes[i].speed;
+
+        if (cubes[i].y > canvas.height) {
+            cubes.splice(i, 1);
+        }
+    }
+}
+
+// Перевірка на зіткнення з ворогами
+function checkCollisions() {
+    for (let i = 0; i < enemies.length; i++) {
+        if (
+            player.x < enemies[i].x + enemies[i].size &&
+            player.x + player.size > enemies[i].x &&
+            player.y < enemies[i].y + enemies[i].size &&
+            player.y + player.size > enemies[i].y
+        ) {
+            isGameOver = true;
+            document.getElementById('gameOver').style.display = 'block';
+            document.getElementById('scoreDisplay').textContent = score;
+        }
+    }
+
+    // Перевірка зіткнення з перешкодами
+    for (let i = 0; i < obstacles.length; i++) {
+        if (
+            player.x < obstacles[i].x + obstacles[i].size &&
+            player.x + player.size > obstacles[i].x &&
+            player.y < obstacles[i].y + obstacles[i].size &&
+            player.y + player.size > obstacles[i].y
+        ) {
+            isGameOver = true;
+            document.getElementById('gameOver').style.display = 'block';
+            document.getElementById('scoreDisplay').textContent = score;
+        }
+    }
+
+    // Перевірка зіткнення з кубами (бафи/дебафи)
+    for (let i = 0; i < cubes.length; i++) {
+        if (
+            player.x < cubes[i].x + cubes[i].size &&
+            player.x + player.size > cubes[i].x &&
+            player.y < cubes[i].y + cubes[i].size &&
+            player.y + player.size > cubes[i].y
+        ) {
+            if (cubes[i].type === 'buff') {
+                player.speedMultiplier = 1.5; // Баф: збільшуємо швидкість
+            } else {
+                player.speedMultiplier = 0.5; // Дебаф: зменшуємо швидкість
+            }
+            cubes.splice(i, 1); // Видаляємо куб після того, як він взятий
+        }
+    }
+}
+
+// Генерація ворогів
+function generateEnemies() {
+    if (Math.random() < 0.03 * difficultyLevel) {
+        const enemy = {
+            x: Math.random() * (canvas.width - 30),
+            y: -30,
+            size: 30,
+            speed: 4 + Math.random() * 2 + difficultyLevel,
+            sideMovement: (Math.random() - 0.5) * 2
+        };
+        enemies.push(enemy);
+    }
+}
+
+// Генерація перешкод
+function generateObstacles() {
+    if (Math.random() < 0.02) {
+        const obstacle = {
+            x: Math.random() * (canvas.width - 30),
+            y: -30,
+            size: 40,
+            speed: 4 + difficultyLevel,
+        };
+        obstacles.push(obstacle);
+    }
+}
+
+// Генерація кубів (бафів/дебафів)
+function generateCubes() {
+    if (Math.random() < 0.02) {
+        const cube = {
+            x: Math.random() * (canvas.width - 30),
+            y: -30,
+            size: 30,
+            speed: 4 + difficultyLevel,
+            type: Math.random() > 0.5 ? 'buff' : 'debuff', // 50% шанс на баф чи дебаф
+        };
+        cubes.push(cube);
+    }
+}
+
+// Оновлення гри
+function update() {
+    if (isGameOver) return;
+
+    if (score >= 300 && !isGameWon) {
+        isGameWon = true;
+        document.getElementById('gameOver').style.display = 'block';
+        document.getElementById('scoreDisplay').textContent = `Ви пройшли гру! Ваші очки: ${score}`;
         return;
     }
 
-    const commonWords = findCommonWords(phrase1, phrase2);
-    const resultText = commonWords.length > 0
-        ? `Спільні слова: ${commonWords.join(", ")}`
-        : "Спільних слів немає.";
-
-    document.getElementById("result").textContent = resultText;
-});
-
-// Асинхронна функція для запиту до API зображення собаки
-async function getDogImage() {
-    const url = 'https://dog.ceo/api/breeds/image/random';
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Помилка запиту: ' + response.status);
-        const data = await response.json();
-        const container = document.getElementById('dogContainer');
-        container.innerHTML = `<img src="${data.message}" alt="Random Dog Image">`;
-    } catch (error) {
-        console.error('Помилка:', error);
-        document.getElementById('dogContainer').innerHTML = '<p>Не вдалося отримати фото 😢</p>';
+    if (score >= 100 && difficultyLevel === 1) {
+        difficultyLevel = 2;
     }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    drawPlayer();
+    drawEnemies();
+    drawObstacles();
+    drawCubes();
+
+    updatePlayer();
+    updateEnemies();
+    updateObstacles();
+    updateCubes();
+    checkCollisions();
+    generateEnemies();
+    generateObstacles();
+    generateCubes();
+
+    requestAnimationFrame(update);
 }
 
-// Обробник події на кнопку для отримання фото собаки
-document.getElementById('getDogBtn').addEventListener('click', getDogImage);
+// Запуск гри
+update();
