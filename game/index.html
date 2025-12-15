@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Функціонал</title>
+    <style>
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .gallery-images img {
+            width: 100%;
+            max-width: 300px;
+            margin: 10px;
+        }
+        
+        #dogContainer img {
+            max-width: 100%;
+            max-height: 300px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Різні елементи HTML -->
+
+    <h1>Тестування JavaScript</h1>
+
+    <!-- Галерея зображень -->
+    <div class="gallery-images"></div>
+
+    <!-- Кнопка для зміни кольору фону -->
+    <button id="startBtn">Змінити фон</button>
+
+    <!-- Форма для перевірки вводу -->
+    <input type="text" id="login" placeholder="Логін">
+    <input type="email" id="email" placeholder="Електронна пошта">
+    <input type="text" id="phone" placeholder="Телефон">
+    <button onclick="validate()">Перевірити</button>
+
+    <!-- Виведення результату для спільних слів -->
+    <input type="text" id="phraseInput1" placeholder="Перша фраза">
+    <input type="text" id="phraseInput2" placeholder="Друга фраза">
+    <button id="compareButton">Порівняти</button>
+    <p id="result"></p>
+
+    <!-- Контейнер для фото собак -->
+    <button id="getDogBtn">Отримати фото собаки</button>
+    <div id="dogContainer"></div>
+
+
+    <script src="script.js"></script>
+</body>
+
+</html>
