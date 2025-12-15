@@ -49,12 +49,7 @@
         <section class="gallery" id="services">
             <h2>Галерея скріншотів</h2>
             <div class="gallery-images">
-                <img src="https://shadowfight2.com/images/slides/screenshot_01.jpg" alt="Скріншот 1">
-                <img src="https://shadowfight2.com/images/slides/screenshot_02.jpg" alt="Скріншот 2">
-                <img src="https://shadowfight2.com/images/slides/screenshot_03.jpg" alt="Скріншот 3">
-                <img src="https://shadowfight2.com/images/slides/screenshot_04.jpg" alt="Скріншот 4">
-                <img src="https://shadowfight2.com/images/slides/screenshot_05.jpg" alt="Скріншот 5">
-                <img src="https://shadowfight2.com/images/slides/screenshot_06.jpg" alt="Скріншот 6">
+                <!-- Зображення додаватимуться через JS -->
             </div>
         </section>
 
@@ -85,6 +80,25 @@
                     <a href="#"><img src="https://shadowfight2.com/images/socials/banzai.svg" alt="Banzai"></a>
                 </div>
             </div>
+        </section>
+
+        <!-- Форма для порівняння фраз -->
+        <section>
+            <input type="text" id="phraseInput1" placeholder="Введіть першу фразу">
+            <input type="text" id="phraseInput2" placeholder="Введіть другу фразу">
+            <button id="compareButton">Порівняти</button>
+            <p id="result"></p>
+        </section>
+
+        <!-- Кнопка для отримання фото собаки -->
+        <section>
+            <button id="getDogBtn">Отримати фото собаки</button>
+            <div id="dogContainer"></div>
+        </section>
+
+        <!-- Кнопка для зміни фону -->
+        <section>
+            <button id="startBtn">Зміни фон</button>
         </section>
 
     </main>
